@@ -1,0 +1,17 @@
+C:\Users\Panichev.s\source\repos\mappin\bin\Debug\mappin.exe.config
+C:\Users\Panichev.s\source\repos\mappin\bin\Debug\mappin.exe
+C:\Users\Panichev.s\source\repos\mappin\bin\Debug\mappin.pdb
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\MainWindow.g.cs
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\App.g.cs
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin_MarkupCompile.cache
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin_MarkupCompile.lref
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\MainWindow.baml
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.g.resources
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.Properties.Resources.resources
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.csproj.GenerateResource.cache
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.csproj.CoreCompileInputs.cache
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.exe
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.pdb
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\FirstWindow.g.cs
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\FirstWindow.baml
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.csprojAssemblyReference.cache
