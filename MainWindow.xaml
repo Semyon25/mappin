@@ -33,7 +33,7 @@
             </TextBlock>
         </Border>-->
         <StackPanel Margin="10">
-            <Image Source="C:\Users\Panichev.s\Desktop\3.png" Stretch="Fill" Height="400" Width="65" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <Image Source="Images/3.png" Stretch="Fill" Height="400" Width="65" VerticalAlignment="Center" HorizontalAlignment="Center" />
         </StackPanel>
         <!--<Border BorderBrush="Black" BorderThickness="3" Width="60" Height="300" Grid.Row="1" >
             <TextBlock Text="Плата 2" FontSize="30" VerticalAlignment="Center" HorizontalAlignment="Center" >
@@ -43,7 +43,7 @@
             </TextBlock>
         </Border>-->
         <StackPanel Margin="10" Grid.Row="1">
-            <Image Source="C:\Users\Panichev.s\Desktop\3.png" Stretch="Fill" Height="400" Width="65" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <Image Source="Images/3.png" Stretch="Fill" Height="400" Width="65" VerticalAlignment="Center" HorizontalAlignment="Center" />
         </StackPanel>
         <Canvas Grid.Column="1" Grid.RowSpan="2" x:Name="Field" HorizontalAlignment="Left">
             <Grid>
@@ -59,7 +59,7 @@
                     <ColumnDefinition Width="30" ></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Grid.Background>
-                    <ImageBrush  ImageSource="C:\Users\Panichev.s\Desktop\2.JPG"  TileMode="None" Opacity="0.3" />
+                    <ImageBrush  ImageSource="Images/2.JPG"  TileMode="None" Opacity="0.3" />
                 </Grid.Background>
                 <StackPanel Grid.Column="1" x:Name="PaintArea1"/>
                 <StackPanel Grid.Column="3" x:Name="PaintArea3" Margin="0,10,0,0"/>
@@ -70,10 +70,10 @@
             </Grid>
         </Canvas>
         <StackPanel Grid.Column="2">
-            <Button Content="Сброс" Width="100" Margin="10" Height="26" Click="Reset_Click"/>
-            <Button Content="Очистить" Width="100" Margin="10" Height="26" Click="Clear_Click"/>
-            <Button Content="Выбрать файл" Width="100" Margin="10" Height="26" Click="ChooseFile_Click"/>
-            <Button Content="PATEDIT" Width="100" Margin="10" Height="26" Click="PatEdit_Click"/>
+            <Button Content="Сброс" Width="120" Margin="10" Height="30" Click="Reset_Click"/>
+            <Button Content="Очистить" Width="120" Margin="10" Height="30" Click="Clear_Click"/>
+            <Button Content="Конвертировать" Width="120" Margin="10" Height="30" Click="ChooseFile_Click"/>
+            <!--<Button Content="PATEDIT" Width="100" Margin="10" Height="26" Click="PatEdit_Click"/>-->
         </StackPanel>
         <StackPanel Grid.RowSpan="2" Grid.Row="0" Grid.Column="3">
             <DataGrid ItemsSource="{Binding Table}" CanUserResizeRows="False" AutoGenerateColumns="False" ColumnWidth="*" Width="230" Margin="5"  >

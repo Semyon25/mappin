@@ -15,3 +15,8 @@ C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.pdb
 C:\Users\Panichev.s\source\repos\mappin\obj\Debug\FirstWindow.g.cs
 C:\Users\Panichev.s\source\repos\mappin\obj\Debug\FirstWindow.baml
 C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.csprojAssemblyReference.cache
+C:\Users\Panichev.s\source\repos\mappin\bin\Debug\AutoItX3.dll
+C:\Users\Panichev.s\source\repos\mappin\bin\Debug\AutoItX3_x64.dll
+C:\Users\Panichev.s\source\repos\mappin\bin\Debug\AutoItX3.Assembly.dll
+C:\Users\Panichev.s\source\repos\mappin\bin\Debug\AutoItX3.Assembly.xml
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.csproj.CopyComplete

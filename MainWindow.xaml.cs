@@ -1,13 +1,16 @@
-﻿using Microsoft.Win32;
+﻿using AutoIt;
+using Microsoft.Win32;
 using System; 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -143,7 +146,7 @@ namespace mappin
                 if (Vcc.Find(x => x == textLabel) != 0)
                 {
                     b.Background = Brushes.Red;
-                    l1.Content = "Vcc";
+                    l1.Content = "VCC";
                 }
                 else if (Gnd.Find(x => x == textLabel) != 0)
                 {
@@ -240,7 +243,7 @@ namespace mappin
         private void createLine(bool isAdd = true)
         {
             int tmp = pairs[pairs.Count - 1].leftNode.number;
-            Table[pairs[pairs.Count - 1].rightNode.number-1].FirstRow = (tmp > 16 ? "b" + (tmp-16).ToString() : "a" + (tmp).ToString());
+            Table[pairs[pairs.Count - 1].rightNode.number-1].FirstRow = (tmp > 16 ? "B" + (tmp-16).ToString() : "A" + (tmp).ToString());
             Point p1 = pairs[pairs.Count - 1].leftNode.point;
             Point p2 = pairs[pairs.Count - 1].rightNode.point;
             CorrectPoint(ref p1, ref p2);
@@ -313,10 +316,11 @@ namespace mappin
         }
 
 
-
+        string result;
+        string filename;
         private void ChooseFile_Click(object sender, RoutedEventArgs e)
         {
-            string filename;
+            
             OpenFileDialog openFileDialog1 = new OpenFileDialog() { Filter = "Текстовые файлы(*.txt)|*.txt" };
             if (openFileDialog1.ShowDialog() == true)
             {
@@ -326,7 +330,7 @@ namespace mappin
             {
                 return;
             }
-            string result = string.Empty;
+            result = string.Empty;
             bool err1 = false;
             bool err2 = false;
             using (StreamReader sr = new StreamReader(filename, System.Text.Encoding.Default))
@@ -343,10 +347,14 @@ namespace mappin
             {
                 sw.WriteLine(result);
             }
-            ErrorMessages(err1, err2);
+            string msg = string.Empty;
+            CreatePatFile(ref msg);
+            ErrorMessages(err1, err2, msg);
         }
+
         private string ConvertString(string line, ref bool moreSymbolPattern, ref bool err)
         {
+            const int firstWords = 3;
             line = line.Trim(';');
             List<string> words = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Cast<string>().ToList();
             List<int> specialPins = new List<int>();
@@ -355,11 +363,12 @@ namespace mappin
             specialPins.Sort();
             foreach (var c in specialPins)
             {
-                if (words.Count - 2 >= c) words.Insert(c+1, "SPEC");
+                if (words.Count - firstWords >= c) words.Insert(c+ firstWords - 1, "SPEC");
             }
-            List<bool> rightList = new List<bool>(words.Count - 2);
+            List<bool> rightList = new List<bool>(words.Count - firstWords);
             for (int i = 0; i < rightList.Capacity; ++i) rightList.Add(false);
-            string result = words[0] + " " + words[1] + " ";
+            string result = string.Empty;
+            for (int i = 0; i < firstWords; ++i) result += words[i] + " ";
 
             for (int i = 1; i <= 32; ++i)
             {
@@ -368,38 +377,75 @@ namespace mappin
                 {
                     if (p.leftNode.number == i)
                     {
-                        if (p.rightNode.number + 1 < words.Count && words[p.rightNode.number + 1] != "SPEC")
+                        if (p.rightNode.number + firstWords-1 < words.Count && words[p.rightNode.number + firstWords -1] != "SPEC")
                         {
                             rightList[p.rightNode.number - 1] = true;
                         }
                             
-                        if (p.rightNode.number + 1 >= words.Count) { moreSymbolPattern = true; break; }
-                        result += words[p.rightNode.number + 1];
+                        if (p.rightNode.number + firstWords - 1 >= words.Count) { moreSymbolPattern = true; break; }
+                        result += words[p.rightNode.number + firstWords -1];
                         f = true;
                         break;
                     }
                 }
                 if (!f) result += "X";
-                result += " ";
             }
-
-            result = result.TrimEnd(' ');
             result += ";" + Environment.NewLine;
 
             for (int i = 0; i < rightList.Count; i++)
             {
-                if (rightList[i] == false && (words[i + 2] != "X" && words[i + 2] != "SPEC")) { err = true;  break; }
+                if (rightList[i] == false && (words[i + firstWords] != "X" && words[i + firstWords] != "SPEC")) { err = true;  break; }
             }
-
             return result;
         }
 
-        private void ErrorMessages(bool err1, bool err2)
+        private void ErrorMessages(bool err1, bool err2, string msg)
         {
-            if (err1 && err2) MessageBox.Show("В шаблоне меньше символов, чем подключенных контактов!\n" + "Есть не подключенные контакты, которые прописаны в шаблоне!");
-            else if (err1) MessageBox.Show("В шаблоне меньше символов, чем подключенных контактов!");
-            else if (err2) MessageBox.Show("Есть не подключенные контакты, которые прописаны в шаблоне!");
-            else MessageBox.Show("Конвертирование прошло успешно!");
+            string message = string.Empty;
+            if (err1) message += "В шаблоне меньше символов, чем подключенных контактов!\n";
+            if (err2) message += "Есть не подключенные контакты, которые прописаны в шаблоне!\n";
+            if (!err1 && !err2) message += "Конвертирование в .pat файл прошло успешно!\n";
+            message += msg;
+            MessageBox.Show(message);
+        }
+
+        private void CreatePatFile(ref string clipboard)
+        {
+            Process x;
+            try
+            {
+                x = System.Diagnostics.Process.Start(@"C:\OpenATE\MTS3\ut\PATEDIT.exe");
+            }
+            catch { MessageBox.Show("Файл PATEDIT.exe не найден!"); return; }
+            try
+            {
+                Clipboard.SetText(result); // копируем в буфер обмена
+                BlockInput(true); // блокировка мыши
+                x.WaitForExit(3000); // ждем пока откроется приложение
+                System.Drawing.Point pointMouse = AutoItX.MouseGetPos(); // запоминает позицию курсора
+                AutoItX.AutoItSetOption("MouseCoordMode", 2); // Координаты мыши будут рассчитываться от рабочей области окна, а не всего экрана
+                AutoItX.MouseClick("left", 55, 40, 1, 0); // open
+                Thread.Sleep(2000); // ждем пока откроется окно
+                AutoItX.Send(filename); // Пишем имя pat файла
+                AutoItX.Send("{ENTER}"); // Нажимаем enter, чтобы открыть
+                Thread.Sleep(1000); // ждем пока закроется окно
+                AutoItX.MouseClick("left", 320, 40, 1, 0); // compile
+                Thread.Sleep(1000); // ждем пока скомпилируется
+                AutoItX.MouseClick("left", 200, 400, 1, 0); // ставим курсор
+                AutoItX.Send("{CTRLDOWN}"); // удерживаем кнопку ctrl
+                AutoItX.Send("A"); // выделяем информацию о компиляции
+                AutoItX.Send("C"); // копируем информацию о компиляции
+                AutoItX.Send("{CTRLUP}"); // отпускаем кнопку ctrl
+                clipboard = Clipboard.GetText();
+                AutoItX.MouseMove(pointMouse.X, pointMouse.Y, 0); // возвращает курсор обратно
+                x.Kill();  // close
+                BlockInput(false); // разблокировка мыши
+            }
+            catch
+            {
+                MessageBox.Show("Произошел сбой!");
+                BlockInput(false); // разблокировка мыши
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -409,15 +455,8 @@ namespace mappin
                 PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern bool BlockInput([In, MarshalAs(UnmanagedType.Bool)] bool fBlockIt);
 
-        private void PatEdit_Click(object sender, RoutedEventArgs e)
-        {
-            System.Diagnostics.Process.Start(@"C:\OpenATE\MTS3\ut\PATEDIT.exe");
-
-        }
-
-
-        //[DllImportAttribute("TPBUILD.dll", CallingConvention = CallingConvention.StdCall)]
-        //public static extern void run(string s);
     }
 }
