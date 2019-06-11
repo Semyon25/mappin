@@ -5,9 +5,39 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:mappin"
         mc:Ignorable="d"
-        Title="FirstWindow" Height="250" Width="300">
+        Title="Новый проект" Height="240" Width="300" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Control.Background" Value="#FFEFFDEC" />
+            <Setter Property="Control.Margin" Value="5" />
+            <Setter Property="Control.Width" Value="70" />
+            <Setter Property="Control.VerticalAlignment" Value="Top" />
+            <Setter Property="Control.HorizontalAlignment" Value="Left" />
+            <Setter Property="Control.FontSize" Value="16" />
+            <Setter Property="Control.Foreground" Value="#FF232923" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Control.MinWidth" Value="70" />
+            <Setter Property="Control.MinHeight" Value="30" />
+            <Setter Property="Control.Margin" Value="0,0,15,0" />
+            <Setter Property="Control.FontSize" Value="14" />
+            <Setter Property="Control.Foreground" Value="#FF232923" />
+            <Setter Property="Control.BorderBrush" Value="#FF444F44" />
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Control.Margin" Value="5" />
+            <Setter Property="Control.FontSize" Value="16" />
+            <Setter Property="Control.Foreground" Value="#FF232923" />
+        </Style>
+    </Window.Resources>
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="White" Offset="1"/>
+            <GradientStop Color="#FFCBE8C7" Offset="0.578"/>
+        </LinearGradientBrush>
+    </Window.Background>
     <StackPanel>
-        <Grid>
+        <Grid Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>
                 <RowDefinition></RowDefinition>
@@ -17,17 +47,21 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <TextBlock Margin="5" FontSize="16">Количество пинов:</TextBlock>
-            <TextBox x:Name="Pins" Margin="5" Width="70" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="16" Grid.Column="1"/>
-            <TextBlock Margin="5" FontSize="16" Grid.Row="1">Vcc пины:</TextBlock>
-            <TextBox x:Name="VccPins" Margin="5" Width="70" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="16" Grid.Column="1" Grid.Row="1"/>
-            <TextBlock Margin="5" FontSize="16" Grid.Row="2">GND пины:</TextBlock>
-            <TextBox x:Name="GndPins" Margin="5" Width="70" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="16" Grid.Column="1" Grid.Row="2"/>
+            <TextBlock >Количество пинов:</TextBlock>
+            <TextBox x:Name="Pins" Grid.Column="1" />
+            <Popup x:Name="popup2" StaysOpen="False" Placement="Mouse" MaxWidth="180" AllowsTransparency="True" >
+                <TextBlock TextWrapping="Wrap" Width="140" Background="LightPink" Opacity="0.7" Text="Мининимум 1 пин, максимум 32 пина" FontSize="14" Padding="4" Margin="0"  />
+            </Popup>
+            <TextBlock Grid.Row="1">VСС пины:</TextBlock>
+            <TextBox x:Name="VccPins" Grid.Column="1" Grid.Row="1"/>
+            <TextBlock Grid.Row="2">GND пины:</TextBlock>
+            <TextBox x:Name="GndPins" Grid.Column="1" Grid.Row="2"/>
         </Grid>
 
         <WrapPanel HorizontalAlignment="Center" Margin="0,15,0,0">
-            <Button IsDefault="True" Click="Accept_Click" MinWidth="60" Margin="0,0,10,0">OK</Button>
-            <Button IsCancel="True" MinWidth="60" Click="Exit_Click">Выход</Button>
+            <Button IsDefault="True" Click="Accept_Click" BorderBrush="#FF444F44">OK</Button>
+            <Button Click="Open_Click">Открыть</Button>
+            <Button IsCancel="True" Click="Exit_Click">Выход</Button>
         </WrapPanel>
     </StackPanel>
 </Window>

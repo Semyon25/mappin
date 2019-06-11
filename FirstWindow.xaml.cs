@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +27,7 @@ namespace mappin
             InitializeComponent();
         }
 
-        private void Accept_Click(object sender, RoutedEventArgs e)
+        private void Accept_Click(object sender, RoutedEventArgs e) // ОК
         {
             try
             {
@@ -37,6 +40,10 @@ namespace mappin
 
                     this.Close();
                 }
+                else
+                {
+                    popup2.IsOpen = true;
+                }
             }
             catch { }
         }
@@ -44,6 +51,45 @@ namespace mappin
         {
             this.Close();
         }
+
+        private void Open_Click(object sender, RoutedEventArgs e) // Открыть
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Environment.CurrentDirectory;
+            if (openFileDialog.ShowDialog() == true)
+            {
+                using (BinaryReader reader = new BinaryReader(File.Open(openFileDialog.FileName, FileMode.Open)))
+                {
+                    try
+                    {
+                        string ap = reader.ReadString();
+                        string vc = reader.ReadString();
+                        string gn = reader.ReadString();
+                        while (reader.PeekChar() > -1)
+                        {
+                            var tmp = new ClassForTable(reader.ReadString(), reader.ReadString());
+                            table.Add(tmp);
+                        }
+                        MainWindow mainWindow = new MainWindow(ap, vc, gn, table);
+                        mainWindow.Show();
+
+                        this.Close();
+
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Некорректный файл!");
+                        return;
+                    }
+
+                }
+            }
+        }
+
+        // Переменные и свойства
+
+        private ObservableCollection<ClassForTable> table = new ObservableCollection<ClassForTable>();
+
         public string AmountPins
         {
             get { return Pins.Text; }

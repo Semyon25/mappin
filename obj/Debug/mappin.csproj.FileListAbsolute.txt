@@ -20,3 +20,5 @@ C:\Users\Panichev.s\source\repos\mappin\bin\Debug\AutoItX3_x64.dll
 C:\Users\Panichev.s\source\repos\mappin\bin\Debug\AutoItX3.Assembly.dll
 C:\Users\Panichev.s\source\repos\mappin\bin\Debug\AutoItX3.Assembly.xml
 C:\Users\Panichev.s\source\repos\mappin\obj\Debug\mappin.csproj.CopyComplete
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\GrayWindow.g.cs
+C:\Users\Panichev.s\source\repos\mappin\obj\Debug\GrayWindow.baml

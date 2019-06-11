@@ -1,6 +1,6 @@
 ﻿using AutoIt;
 using Microsoft.Win32;
-using System; 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,18 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Serialization;
 
 namespace mappin
 {
@@ -29,17 +24,51 @@ namespace mappin
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        public MainWindow() { }
         public MainWindow(string amount, string vcc, string gnd)
         {
             InitializeComponent();
             DataContext = this;
             DialogShow(amount, vcc, gnd);
             paintFirst();
+            CreatingTable();
+        }
+        public MainWindow(string amount, string vcc, string gnd, ObservableCollection<ClassForTable> t) : this(amount, vcc, gnd)
+        {
+            Table = t;
+            if (!flag)
+            {
+                timer.Tick += new EventHandler(timerTick);
+                timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+                timer.Start();
+            }
+        }
+        public void init(string amount, string vcc, string gnd)
+        {
+            LeftBorders.Clear();
+            RightBorders.Clear();
+            Pairs.Clear();
+            DialogShow(amount, vcc, gnd);
+            paintFirst();
         }
 
-        int AmountPins { get; set; }
+        // Переменные
+        const double radius = 12;
+        const double margin = 1;
+        int colorCounter = 0;
         List<int> Vcc = new List<int>();
         List<int> Gnd = new List<int>();
+        private List<DockPanel> LeftBorders = new List<DockPanel>();
+        private List<DockPanel> RightBorders = new List<DockPanel>();
+        Node node = new Node();
+        List<SolidColorBrush> brushes = new List<SolidColorBrush>() { Brushes.Magenta, Brushes.Orange, Brushes.Green, Brushes.LimeGreen, Brushes.Aqua, Brushes.DodgerBlue, Brushes.SlateBlue, Brushes.Violet, Brushes.Chocolate, Brushes.Gray };
+        System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();
+        bool flag = false;
+
+        // Свойства
+
+        int AmountPins { get; set; }
+
         private ObservableCollection<ClassForTable> table = new ObservableCollection<ClassForTable>();
         public ObservableCollection<ClassForTable> Table
         {
@@ -47,7 +76,15 @@ namespace mappin
             set { table = value; OnPropertyChanged(); }
         }
 
-        private void DialogShow(string amount, string vcc, string gnd)
+        List<Pair> pairs = new List<Pair>();
+        public List<Pair> Pairs
+        {
+            get { return pairs; }
+        }
+
+
+        #region Первоначальная отрисовка
+        private void DialogShow(string amount, string vcc, string gnd) // Обработка значений, полученных из первого окна
         {
                 AmountPins = Convert.ToInt32(amount);
                 Vcc.Clear();
@@ -64,56 +101,40 @@ namespace mappin
                 }
         }
 
-        public class ClassForTable : INotifyPropertyChanged
-        {
-            private string firstRow;
-            public string FirstRow
-            {
-                get { return firstRow; }
-                set { firstRow = value; OnPropertyChanged(); }
-            }
-            private string secondRow;
-            public string SecondRow
-            {
-                get { return secondRow; }
-                set { secondRow = value; OnPropertyChanged(); }
-            }
-            public ClassForTable(string first, string second)
-            {
-                FirstRow = first;
-                SecondRow = second;
-            }
-            public event PropertyChangedEventHandler PropertyChanged;
-            public void OnPropertyChanged([CallerMemberName]string prop = "")
-            {
-                if (PropertyChanged != null)
-                    PropertyChanged(this, new PropertyChangedEventArgs(prop));
-            }
-        }
-
         private void paintFirst()
         {
-            for (int i = 1; i<=16; ++i)
+            for (int i = 1; i<=16; ++i) // отрисовка левого столбца
             {
                 PaintArea1.Children.Add(createLabels(i, i));
                 PaintArea2.Children.Add(createLabels(i+16, i));
             }
-            for(int i=1; i<= (AmountPins>16 ? 16 : AmountPins); ++i)
+
+            for(int i=1; i<= (AmountPins>16 ? 16 : AmountPins); ++i) // правый столбец
             {
-                PaintArea3.Children.Add(createLabels(i+32, i, true));
+                var b = createLabels(i + 32, i, true);
+                PaintArea3.Children.Add(b);
             }
             for (int i = 17; i <= AmountPins; ++i)
             {
-                PaintArea4.Children.Add(createLabels(i+32, i, true));
+                var b = createLabels(i + 32, i, true);
+                PaintArea4.Children.Add(b);
             }
-            for (int i=0; i<AmountPins; ++i)
-            {
-                string c = ""; 
-                if (Vcc.Find(x => x == i+1) != 0) c = "VCC";
-                if (Gnd.Find(x => x == i+1) != 0) c = "GND";
-                Table.Add(new ClassForTable(c, (i + 1).ToString()));
-            }
+        }
 
+        void printLink()
+        {
+            for (int i=1; i<=Table.Count; ++i)
+            {
+                if ((Table[i - 1].FirstRow != "GND" && Table[i - 1].FirstRow != "VCC" && Table[i - 1].FirstRow != ""))
+                {
+                    char board = Table[i - 1].FirstRow[0];
+                    int num = Convert.ToInt32(Table[i - 1].FirstRow.Remove(0, 1));
+                    if (board == 'B') num += 16;
+                    LabelEvent(LeftBorders[num - 1], null);
+                    num = Convert.ToInt32(Table[i - 1].SecondRow);
+                    LabelEvent(RightBorders[num - 1], null);
+                }
+            }
         }
 
         private DockPanel createLabels(int i, int textLabel, bool isRight = false)
@@ -129,7 +150,7 @@ namespace mappin
             b.Background = Brushes.Transparent;
             b.Uid = i.ToString();
             if (!(isRight && (Vcc.Find(x => x == textLabel) != 0 || Gnd.Find(x => x == textLabel) != 0)))
-                b.MouseDown += LabelEvent;
+                dock.MouseDown += LabelEvent;
             Label l = new Label();
             l.Content = textLabel.ToString();
             l.Padding = new Thickness(0);
@@ -137,8 +158,15 @@ namespace mappin
             l.HorizontalContentAlignment = HorizontalAlignment.Center;
             b.Child = l;
             dock.Children.Add(b);
+            if (!isRight)
+            {
+                if (i <= 16) LeftBorders.Insert(LeftBorders.Count/2, dock);
+                else LeftBorders.Add(dock);
+            }
             if (isRight)
             {
+                RightBorders.Add(dock);
+
                 Label l1 = new Label();
                 l1.VerticalContentAlignment = VerticalAlignment.Center;
                 l1.HorizontalContentAlignment = HorizontalAlignment.Center;
@@ -158,55 +186,24 @@ namespace mappin
             return dock;
         }
 
-        public class Node
+        private void CreatingTable()
         {
-            public Border border;
-            public Point point;
-            public int number;
-            public bool isLeft;
-            public bool isUsed;
-            public Node()
+            for (int i = 0; i < AmountPins; ++i) // для Table
             {
-                isUsed = false;
-            }
-            public Node(Border b, Point p)
-            {
-                border = b;
-                int n = Convert.ToInt32(b.Uid);
-                point = p;
-                number = n > 32 ? n - 32 : n;
-                isLeft = n > 32 ? false : true;
-                isUsed = true;
+                string c = "";
+                if (Vcc.Find(x => x == i + 1) != 0) c = "VCC";
+                if (Gnd.Find(x => x == i + 1) != 0) c = "GND";
+                Table.Add(new ClassForTable(c, (i + 1).ToString()));
             }
         }
-        public class Pair
-        {
-            public Node leftNode;
-            public Node rightNode;
-            public Polyline polyline;
-            public Pair(Node l, Node r, Polyline p)
-            {
-                leftNode = l;
-                rightNode = r;
-                polyline = p;
-            }
-        }
+        #endregion
 
-        Node node = new Node();
-        List<Pair> pairs = new List<Pair>();
-        public List<Pair> Pairs
-        {
-            get { return pairs; }
-        }
-        List<SolidColorBrush> brushes = new List<SolidColorBrush>() { Brushes.Magenta, Brushes.Orange, Brushes.Green, Brushes.LimeGreen, Brushes.Aqua, Brushes.DodgerBlue, Brushes.SlateBlue, Brushes.Violet, Brushes.Chocolate, Brushes.Gray };
-        const double radius = 12;
-        const double margin = 1;
-        int colorCounter = 0;
-
+        #region Событие при нажатии на label
         private void LabelEvent(object sender, MouseButtonEventArgs e)
         {
-            Border border = sender as Border;
-            Point relativePoint = border.TransformToAncestor(Field).Transform(new Point(0, 0));
+            DockPanel dock = sender as DockPanel;
+            Border border = dock.Children[0] as Border;
+            Point relativePoint = dock.TransformToVisual(Field).Transform(new Point(0, 0));
             if (SearchBorder(border)) // удаляем линию
             {
                 DeleteLine(border);
@@ -236,7 +233,6 @@ namespace mappin
                 pairs.Add(new Pair(node.isLeft ? node : node2, node.isLeft ? node2 : node, new Polyline()));
                 createLine();
                 node = new Node();
-                
             }
         }
 
@@ -291,45 +287,16 @@ namespace mappin
             Field.Children.Remove(deletePair.polyline);
             pairs.Remove(deletePair);
         }
+        #endregion
 
-        private void Clear_Click(object sender, RoutedEventArgs e)
-        {
-            foreach(Pair p in pairs)
-            {
-                p.leftNode.border.Background = Brushes.Transparent;
-                p.rightNode.border.Background = Brushes.Transparent;
-                Field.Children.Remove(p.polyline);
-            }
-            pairs.Clear();
-            foreach(var t in Table)
-            {
-                if(t.FirstRow!="VCC" && t.FirstRow!="GND")
-                    t.FirstRow = "";
-            }
-        }
-        private void Reset_Click(object sender, RoutedEventArgs e)
-        {
-
-            FirstWindow firstWindow = new FirstWindow();
-            firstWindow.Show();
-            this.Close();
-        }
-
-
+        #region Конвертирование
         string result;
         string filename;
         private void ChooseFile_Click(object sender, RoutedEventArgs e)
         {
-            
             OpenFileDialog openFileDialog1 = new OpenFileDialog() { Filter = "Текстовые файлы(*.txt)|*.txt" };
-            if (openFileDialog1.ShowDialog() == true)
-            {
-                filename = openFileDialog1.FileName;
-            }
-            else
-            {
-                return;
-            }
+            if (openFileDialog1.ShowDialog() == true) filename = openFileDialog1.FileName;
+            else return;
             result = string.Empty;
             bool err1 = false;
             bool err2 = false;
@@ -363,7 +330,7 @@ namespace mappin
             specialPins.Sort();
             foreach (var c in specialPins)
             {
-                if (words.Count - firstWords >= c) words.Insert(c+ firstWords - 1, "SPEC");
+                if (words.Count - firstWords >= c) words.Insert(c + firstWords - 1, "SPEC");
             }
             List<bool> rightList = new List<bool>(words.Count - firstWords);
             for (int i = 0; i < rightList.Capacity; ++i) rightList.Add(false);
@@ -377,15 +344,15 @@ namespace mappin
                 {
                     if (p.leftNode.number == i)
                     {
-                        if (p.rightNode.number + firstWords-1 < words.Count && words[p.rightNode.number + firstWords -1] != "SPEC")
+                        if (p.rightNode.number + firstWords - 1 < words.Count && words[p.rightNode.number + firstWords - 1] != "SPEC")
                         {
                             rightList[p.rightNode.number - 1] = true;
+                            result += words[p.rightNode.number + firstWords - 1];
+                            f = true;
+                            break;
                         }
-                            
                         if (p.rightNode.number + firstWords - 1 >= words.Count) { moreSymbolPattern = true; break; }
-                        result += words[p.rightNode.number + firstWords -1];
-                        f = true;
-                        break;
+                        if (words[p.rightNode.number + firstWords - 1] == "SPEC") { break; }
                     }
                 }
                 if (!f) result += "X";
@@ -394,7 +361,7 @@ namespace mappin
 
             for (int i = 0; i < rightList.Count; i++)
             {
-                if (rightList[i] == false && (words[i + firstWords] != "X" && words[i + firstWords] != "SPEC")) { err = true;  break; }
+                if (rightList[i] == false && (words[i + firstWords] != "X" && words[i + firstWords] != "SPEC")) { err = true; break; }
             }
             return result;
         }
@@ -408,45 +375,11 @@ namespace mappin
             message += msg;
             MessageBox.Show(message);
         }
+        #endregion
 
-        private void CreatePatFile(ref string clipboard)
-        {
-            Process x;
-            try
-            {
-                x = System.Diagnostics.Process.Start(@"C:\OpenATE\MTS3\ut\PATEDIT.exe");
-            }
-            catch { MessageBox.Show("Файл PATEDIT.exe не найден!"); return; }
-            try
-            {
-                Clipboard.SetText(result); // копируем в буфер обмена
-                BlockInput(true); // блокировка мыши
-                x.WaitForExit(3000); // ждем пока откроется приложение
-                System.Drawing.Point pointMouse = AutoItX.MouseGetPos(); // запоминает позицию курсора
-                AutoItX.AutoItSetOption("MouseCoordMode", 2); // Координаты мыши будут рассчитываться от рабочей области окна, а не всего экрана
-                AutoItX.MouseClick("left", 55, 40, 1, 0); // open
-                Thread.Sleep(2000); // ждем пока откроется окно
-                AutoItX.Send(filename); // Пишем имя pat файла
-                AutoItX.Send("{ENTER}"); // Нажимаем enter, чтобы открыть
-                Thread.Sleep(1000); // ждем пока закроется окно
-                AutoItX.MouseClick("left", 320, 40, 1, 0); // compile
-                Thread.Sleep(1000); // ждем пока скомпилируется
-                AutoItX.MouseClick("left", 200, 400, 1, 0); // ставим курсор
-                AutoItX.Send("{CTRLDOWN}"); // удерживаем кнопку ctrl
-                AutoItX.Send("A"); // выделяем информацию о компиляции
-                AutoItX.Send("C"); // копируем информацию о компиляции
-                AutoItX.Send("{CTRLUP}"); // отпускаем кнопку ctrl
-                clipboard = Clipboard.GetText();
-                AutoItX.MouseMove(pointMouse.X, pointMouse.Y, 0); // возвращает курсор обратно
-                x.Kill();  // close
-                BlockInput(false); // разблокировка мыши
-            }
-            catch
-            {
-                MessageBox.Show("Произошел сбой!");
-                BlockInput(false); // разблокировка мыши
-            }
-        }
+
+
+        // События, DllImport
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName]string prop = "")
