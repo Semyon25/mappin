@@ -305,12 +305,14 @@ namespace mappin
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
+                    line = line.Replace("GND ", ""); // удаляем ненужные данные
+                    line = line.Replace("VCC ", "");
                     result += ConvertString(line, ref err1, ref err2);
                 }
             }
-            filename = filename.Remove(filename.Length-4);
-            filename += "-Convert.pat";
-            using (StreamWriter sw = new StreamWriter(filename, false, System.Text.Encoding.Default))
+            var newFileName = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filename),
+                                                     System.IO.Path.GetFileNameWithoutExtension(filename) + "-Convert.pat");
+            using (StreamWriter sw = new StreamWriter(newFileName, false, System.Text.Encoding.Default))
             {
                 sw.WriteLine(result);
             }
